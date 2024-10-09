@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -28,6 +30,9 @@ type RegisterForm struct {
 	ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=Password"`
 }
 
+var trans ut.Translator
+var found bool
+
 func main() {
 	if err := initTranslations("zh"); err != nil {
 		fmt.Println("初始化翻译器错误")
@@ -40,14 +45,43 @@ func main() {
 	router.Run(":3333")
 }
 
+// 通过分割取key
+func removeTopStruct(fields map[string]string) map[string]string {
+	newMap := make(map[string]string)
+	for key, value := range fields {
+		newKey := strings.Split(key, ".")[1]
+		newMap[newKey] = value
+	}
+	return newMap
+}
+
+// 通过 字符串切片取key
+func removeTopStruct2(fields map[string]string) map[string]string {
+	newMap := make(map[string]string)
+	for key, value := range fields {
+		newMap[key[strings.Index(key, ".")+1:]] = value
+	}
+	return newMap
+}
+
 func initTranslations(locale string) (err error) {
 	//修改gin框架中的validator引擎属性，实现定制
 	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		//  注册一个获取json的tag的自定义方法
+		validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			// skip if tag key says it should be ignored
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+
 		zhL := zh.New()
 		enL := en.New()
 		// 第一参数是备用的语言环境，后面是应该支持的语言环境
 		uni := ut.New(enL, zhL, enL)
-		trans, found := uni.GetTranslator(locale)
+		trans, found = uni.GetTranslator(locale)
 		if !found {
 			return fmt.Errorf("uni.GetTranslator(%s)", locale)
 		}
@@ -84,6 +118,12 @@ func login(c *gin.Context) {
 func register(c *gin.Context) {
 	var registerForm RegisterForm
 	if err := c.ShouldBind(&registerForm); err != nil {
+		if comma, ok := err.(validator.ValidationErrors); ok {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": removeTopStruct(comma.Translate(trans)),
+			})
+			return
+		}
 		fmt.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
