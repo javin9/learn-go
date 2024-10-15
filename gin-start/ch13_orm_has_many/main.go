@@ -11,16 +11,15 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-type MallUser struct {
+type ManyUser struct {
 	gorm.Model
-	Name        string
-	CreditCards []CreditCard `gorm:"foreignKey:MallUserID"`
+	Name     string
+	Language []Language `gorm:"many2many:user_languages"`
 }
 
-type CreditCard struct {
+type Language struct {
 	gorm.Model
-	Number     string
-	MallUserID uint
+	Name string
 }
 
 func connectDB() (db *gorm.DB) {
@@ -63,15 +62,5 @@ func main() {
 	fmt.Println("--")
 	db := connectDB()
 	// db.AutoMigrate(MallUser{}, CreditCard{}) //
-	db.AutoMigrate(&MallUser{}, &CreditCard{}) //
-
-	// mallUser := MallUser{Name: "javin"}
-	// db.Create(&mallUser)
-	// db.Create(&[]CreditCard{{Number: "111", MallUserID: mallUser.ID}, {Number: "222", MallUserID: mallUser.ID}, {Number: "333", MallUserID: mallUser.ID}})
-	// // db.Create(&MallUser{Name})
-	var userList MallUser
-	db.Preload("CreditCards").First(&userList) //CreditCards 必须加s
-	for _, v := range userList.CreditCards {
-		fmt.Println(v.Number)
-	}
+	db.AutoMigrate(&ManyUser{}) //
 }
