@@ -31,7 +31,7 @@ func connectDB() (db *gorm.DB) {
 			Colorful:                  false,       // Disable color
 		},
 	)
-	// 参考 https://github.com/go-sql-driver/mysql#dsn-data-source-name 获取详情
+	// 参考 https://gorm.io/zh_CN/docs/connecting_to_the_database.html
 	dsn := "root:123456@tcp(127.0.0.1:3306)/gorm_test?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
