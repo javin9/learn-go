@@ -2,7 +2,7 @@ package routers
 
 import (
 	"github/javin9/go-see/routers/api"
-	"github/javin9/go-see/service"
+	"github/javin9/go-see/service/tag_service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,8 +22,8 @@ func InitRouters() *gin.Engine {
 	// appV1 := r.Group("/api/v1").Use(session.Auth())
 	appV1 := r.Group("/api/v1") //.Use(middleware.SessionAuth())
 	{
-		appV1.GET("/cms/index", api.CmsIndex)
-		appV1.POST("/tag/create", service.CreateTag)
+		appV1.POST("/tag/create", tag_service.CreateTag)
+		appV1.POST("/tag/delete", tag_service.DeleteTag)
 	}
 
 	return r

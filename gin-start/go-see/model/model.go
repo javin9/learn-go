@@ -15,6 +15,10 @@ import (
 
 var db *gorm.DB
 
+type BaseModel struct {
+	gorm.Model
+}
+
 func Setup() {
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
