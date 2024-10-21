@@ -1,11 +1,13 @@
 package tag_service
 
 import (
+	"fmt"
 	"github/javin9/go-see/model"
 	"github/javin9/go-see/pkg/app"
 	"github/javin9/go-see/pkg/e"
 	validator_translation "github/javin9/go-see/validator"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -15,6 +17,37 @@ import (
 type CreateTagDto struct {
 	Name  string `json:"name" binding:"required,min=2,max=10"`
 	State int    `json:"state"`
+}
+
+// type QueryKeyWord struct {
+// 	KeyWord string `json:"keyword"`
+// 	Page    int    `json:"page"`
+// 	Limit   int    `json:"limit"`
+// }
+
+// func Paginate(db *gorm.DB, page, pageSize int) ([]Tag, error) {
+// 	var tags []Tag
+// 	result := db.Offset((page - 1) * pageSize).Limit(pageSize).Find(&tags)
+// 	return tags, result.Error
+// }
+
+func GetTagList(ctx *gin.Context) {
+	appG := app.Gin{C: ctx}
+	keyword := ctx.DefaultQuery("keyword", "")
+	pageString := ctx.DefaultQuery("page", "1")
+	limitString := ctx.DefaultQuery("limit", "20")
+	page, err := strconv.Atoi(pageString)
+	if err != nil {
+		page = 1
+	}
+	limit, limitErr := strconv.Atoi(limitString)
+	if limitErr != nil {
+		limit = 20
+	}
+
+	fmt.Print(page, limit)
+	tagList := model.GetTagList(keyword, page, limit)
+	appG.ResponseSuccess(app.Pagination{List: tagList, Page: page, Limit: limit})
 }
 
 func CreateTag(ctx *gin.Context) {

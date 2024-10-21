@@ -24,6 +24,7 @@ func InitRouters() *gin.Engine {
 	{
 		appV1.POST("/tag/create", tag_service.CreateTag)
 		appV1.POST("/tag/delete", tag_service.DeleteTag)
+		appV1.GET("/tag/list", tag_service.GetTagList)
 	}
 
 	return r

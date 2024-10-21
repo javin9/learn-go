@@ -62,3 +62,10 @@ func EditTag(id uint, data any) error {
 	}
 	return nil
 }
+
+func GetTagList(keyword string, page int, limit int) []Tag {
+	var tagList []Tag
+	fmt.Printf("limit=%d \n", limit)
+	db.Where("name like ?", fmt.Sprintf("%%%s%%", keyword)).Select("name").Offset((page - 1) * limit).Limit(limit).Find(&tagList)
+	return tagList
+}
